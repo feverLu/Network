@@ -4,6 +4,8 @@ import javax.net.ssl.*;
 import java.security.cert.X509Certificate;
 import java.security.cert.CertificateException;
 import java.security.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Client {
 
@@ -14,6 +16,8 @@ public class Client {
     private static BufferedReader in;
 
     private static String MESSAGE_PREFIX = "cs5700fall2014";
+    private static String STATUS_PATTERN = "cs5700fall2014 STATUS \\d+ [\\+-/*] \\d+";
+    private static String BYE_PATTERN = "cs5700fall2014 \\w{64}+ BYE";
 
     public Client(String host, int port, boolean isSSL) {
         try {
@@ -63,6 +67,15 @@ public class Client {
         return result;
     }
 
+    public static String getInfo(String response, String pattern) {
+        Pattern messagePattern = Pattern.compile(pattern);
+        Matcher matcher = messagePattern.matcher(response);
+        if(matcher.find()) {
+            return response;
+        }
+        return null;
+    }
+
     public static void main(String args[]) throws IOException {
         if (args.length != 4) {
             System.err.println("Usage: java Client <host name> <port number> <nuID> <useSSL>");
@@ -83,14 +96,18 @@ public class Client {
         String response;
         while (true) {
             response = in.readLine();
-            if (response == null || !response.contains("STATUS"))
+            if( getInfo(response, BYE_PATTERN) != null) {
+                System.out.println(response.split(" ")[1]);
                 break;
-            else {
+            } else if(getInfo(response, STATUS_PATTERN) != null) {
                 // System.out.println(getSolution(response));
                 out.println(MESSAGE_PREFIX + " " + getSolution(response));
-            }
+            }else {
+                System.out.println("Message pattern not right.");
+                break;
+            } 
         }
-        System.out.println(response.split(" ")[1]);
+        
         // When done, just close the connection and exit
         out.close();
         in.close();
