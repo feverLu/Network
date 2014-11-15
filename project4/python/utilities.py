@@ -3,7 +3,7 @@ import struct
 import fcntl
 import commands
 
-INTERFACE = 'eth1'
+INTERFACE = 'eth0'
 
 # checksum functions needed for calculation checksum
 def checksum(msg):
